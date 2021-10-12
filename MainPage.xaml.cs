@@ -12,6 +12,8 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using MemoryAdequacyAnalyzer.Utils;
+using MemoryAdequacyAnalyzer.Models;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -24,17 +26,20 @@ namespace MemoryAdequacyAnalyzer
     {
         public string RamUsage = "20Mb";
         public string PageFaultProcess = "Teams";
-        public string IsRamUpgrageRequired = true ? "Yes" : "No";
+        public string IsRamUpgradeRequired = "Yes";
         public int AnalysingSince = 100;
+        private DataReaderWriter drwObj;
+
 
         public MainPage()
         {
             this.InitializeComponent();
+            this.drwObj = new DataReaderWriter();
         }
 
         private void StartAnalysing_Handler(object sender, RoutedEventArgs e)
         {
-
+            this.drwObj.WriteData(new DataModel(3, "teams", 4));
         }
 
         private void StopAnalysing_Handler(object sender, RoutedEventArgs e)
