@@ -8,7 +8,33 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid>
-
+    <Grid  x:Name="LayoutRoot" Background="#FFFFFF" Width="Auto" Height="Auto">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Button Content="Start Analysing" VerticalAlignment="Center" HorizontalAlignment="Center"  Click="StartAnalysing_Handler" Grid.Column="0" Grid.Row="0" Background="Green" Foreground="White" Margin="5,5,5,5"/>
+        <Button Content="Stop Analysing" VerticalAlignment="Center" HorizontalAlignment="Center" Click="StopAnalysing_Handler" Grid.Column="1" Grid.Row="0" Background="Red" Foreground="White" Margin="5,5,5,5"/>
+        <Line StrokeThickness="4" Stroke="#434343" X1="0" X2="1" Stretch="Fill" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <TextBlock Text="Ram Upgrade Required :" Foreground="Gray" Grid.Row="2" Grid.Column="0" Margin="5,5,5,5"/>
+        <TextBlock Text="{x:Bind IsRamUpgrageRequired}" Foreground="Gray" Grid.Row="2" Grid.Column="1" Margin="5,5,5,5"/>
+        <TextBlock Text="Analysing Since :" Foreground="Gray" Grid.Row="3" Grid.Column="0" Margin="5,5,5,5"/>
+        <TextBlock Text="{x:Bind AnalysingSince}" Foreground="Gray" Grid.Row="2" Grid.Column="1" Margin="5,5,5,5"/>
+        <TextBlock Text="Peak RAM Usage :" Foreground="Gray" Grid.Row="4" Grid.Column="0" Margin="5,5,5,5"/>
+        <TextBlock Text="{x:Bind RamUsage, Mode=TwoWay}" Foreground="Gray" Grid.Row="4" Grid.Column="1" Margin="5,5,5,5" />
+        <TextBlock Text="Page Fault (process) :" Foreground="Gray" Grid.Row="5" Grid.Column="0" Margin="5,5,5,5"/>
+        <TextBlock Text="{x:Bind PageFaultProcess, Mode=TwoWay}"  Foreground="Gray" Grid.Row="5" Grid.Column="1" Margin="5,5,5,5" />
+        
+        
     </Grid>
 </Page>

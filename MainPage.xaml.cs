@@ -22,9 +22,24 @@ namespace MemoryAdequacyAnalyzer
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        public string RamUsage = "20Mb";
+        public string PageFaultProcess = "Teams";
+        public string IsRamUpgrageRequired = true ? "Yes" : "No";
+        public int AnalysingSince = 100;
+
         public MainPage()
         {
             this.InitializeComponent();
+        }
+
+        private void StartAnalysing_Handler(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void StopAnalysing_Handler(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
