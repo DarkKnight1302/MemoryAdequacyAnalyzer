@@ -1,4 +1,6 @@
 ﻿using BackgroundService.Lib;
+using MemoryAdequacyAnalyzer.Models;
+using MemoryAdequacyAnalyzer.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Background;
 using Windows.Storage;
+using Windows.System;
 using Windows.System.Diagnostics;
 
 namespace BackgroundService
@@ -39,35 +42,52 @@ namespace BackgroundService
                 TaskEntryPoint = typeof(MemoryMetricPeriodicTask).FullName,
             };
             taskBuilder.SetTrigger(new TimeTrigger(15, false));
+            taskBuilder.Register();
         }
 
         private async Task RunCoreAsync(CancellationToken cancellation)
         {
-            await Task.CompletedTask.ConfigureAwait(false);
-            Process[] allProcess = Process.GetProcesses();
+            await AppDiagnosticInfo.RequestAccessAsync();
+            IReadOnlyList<ProcessDiagnosticInfo> diagnosticInfos = ProcessDiagnosticInfo.GetForProcesses();
             SystemDiagnosticInfo systemdiagnosticInfo =  SystemDiagnosticInfo.GetForCurrentSystem();
             SystemMemoryUsageReport usageReport = systemdiagnosticInfo.MemoryUsage.GetReport();
             double ramUsagePercent = ((double)usageReport.CommittedSizeInBytes / (double)usageReport.TotalPhysicalSizeInBytes) * 100;
             uint totalPageFault = 0;
             ulong totalPageFileSize = 0;
-            foreach (Process process in allProcess)
+            foreach (ProcessDiagnosticInfo process in diagnosticInfos)
             {
-                ProcessDiagnosticInfo diagnosticInfo = ProcessDiagnosticInfo.TryGetForProcessId((uint)process.Id);
-                if (diagnosticInfo != null)
+                if (process != null)
                 {
-                    ProcessMemoryUsageReport report = diagnosticInfo.MemoryUsage.GetReport();
+                    ProcessMemoryUsageReport report = process.MemoryUsage.GetReport();
                     totalPageFault += report.PageFaultCount;
                     totalPageFileSize += report.PageFileSizeInBytes;
+                    if (report.PageFaultCount > (uint)(container.Values["maxPageFault"] ?? (uint)0))
+                    {
+                        container.Values["maxPageFault"] = (uint)report.PageFaultCount;
+                        container.Values["maxPageFaultProcess"] = process.ExecutableFileName;
+                    }
                 }
             }
-            uint previousPageFault = (uint)container.Values["previousPageFault"];
-            long previousTime = (long)container.Values["previousTime"];
-            DateTime previousDateTime = DateTime.FromBinary(previousTime);
+            uint previousPageFault = (uint)(container.Values["previousPageFault"] ?? 0);
+            long previousTime = (long)(container.Values["previousTime"] ?? 0);
             container.Values["previousPageFault"] = totalPageFault;
             container.Values["previousTime"] = DateTime.Now.ToBinary();
-            uint pageFaultDiff = totalPageFault > previousPageFault ? (uint)totalPageFault - previousPageFault : 0;
-            uint minsDiff = (uint)DateTime.Now.Subtract(previousDateTime).Minutes;
-            float pageFaultPerMin = (float)pageFaultDiff / (float)minsDiff; 
+            if (previousTime > 0)
+            {
+                DateTime previousDateTime = DateTime.FromBinary(previousTime);
+                uint pageFaultDiff = totalPageFault > previousPageFault ? (uint)totalPageFault - previousPageFault : 0;
+                uint minsDiff = (uint)DateTime.Now.Subtract(previousDateTime).Minutes;
+                float pageFaultPerMin = (float)pageFaultDiff / (float)minsDiff;
+                DataReaderWriter readerWriter = DataReaderWriter.Instance;
+                DataModel dataModel = new DataModel
+                {
+                    CurrentTimeStamp = DateTime.Now,
+                    RamUsage = (int)ramUsagePercent,
+                    PageFaultsPerMin = (int)pageFaultPerMin,
+                    PageFileSize = totalPageFileSize,
+                };
+                await readerWriter.WriteData(dataModel).ConfigureAwait(false);
+            }
         }
     }
 }

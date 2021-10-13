@@ -37,9 +37,9 @@ namespace MemoryAdequacyAnalyzer
             this.drwObj = new DataReaderWriter();
         }
 
-        private void StartAnalysing_Handler(object sender, RoutedEventArgs e)
+        private async void StartAnalysing_Handler(object sender, RoutedEventArgs e)
         {
-            this.drwObj.WriteData(new DataModel(3, "teams", 4));
+          //  await this.drwObj.WriteData(new DataModel(3, 5, 4));
         }
 
         private void StopAnalysing_Handler(object sender, RoutedEventArgs e)

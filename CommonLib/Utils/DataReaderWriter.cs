@@ -8,24 +8,15 @@
     using Windows.Storage;
     using System.IO;
     using MemoryAdequacyAnalyzer.Models;
+    using System.Threading;
+    using System.Diagnostics;
 
     public class DataReaderWriter
     {
-        private StorageFile dataFile = null;
         private StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-        public DataReaderWriter()
-        {
-            if (this.dataFile == null)
-            {
-                this.IntializeComponent();
-            }
-            
-        }
+        private static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
-        public async void IntializeComponent()
-        {
-            this.dataFile = await this.localFolder.CreateFileAsync("dataFile", CreationCollisionOption.ReplaceExisting);
-        }
+        public static DataReaderWriter Instance { get; } = new DataReaderWriter();
 
         /// <summary>
         /// Return the data between timestamp t1 and t2.
@@ -33,8 +24,22 @@
         /// <param name="file"></param>
         /// <param name="t1"></param>
         /// <param name="t2"></param>
-        public void ReadData(DateTime t1, DateTime t2)
+        public List<DataModel> ReadData(DateTime t1, DateTime t2)
         {
+            return new List<DataModel>();
+            // do nothing now..
+        }
+
+        // <summary>
+        /// Return the data between timestamp t1 and t2.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="t1"></param>
+        /// <param name="t2"></param>
+        public List<DataModel> ReadDataFromBeginning()
+        {
+            DateTime dateTime = DateTime.Now;
+            return new List<DataModel>();
             // do nothing now..
         }
 
@@ -42,16 +47,21 @@
         /// Write data to the file.
         /// </summary>
         /// <param name="dm"> Object of DataModel class. </param>
-        public async void WriteData(DataModel dm)
+        public async Task WriteData(DataModel dm)
         {
             try
             {
-                var currentEntry = dm.CurrentTimeStamp.ToString() + " " + dm.RamUsage.ToString() + " " + dm.PeakProcessName + " " + dm.PeakPageFaults.ToString() + Environment.NewLine;
-                await FileIO.AppendTextAsync(this.dataFile, currentEntry);
+                await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+                StorageFile dataFile = await this.localFolder.CreateFileAsync("dataFile", CreationCollisionOption.OpenIfExists);
+                var currentEntry = dm.CurrentTimeStamp.ToString() + "|" + dm.RamUsage + "|" + dm.PageFileSize + "|" + dm.PageFaultsPerMin +  "|" + Environment.NewLine;
+                await FileIO.AppendTextAsync(dataFile, currentEntry);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Debug.WriteLine(ex.Message + "\n" +  ex.StackTrace);
+            } finally
+            {
+                semaphoreSlim.Release();
             }
         }
     }
