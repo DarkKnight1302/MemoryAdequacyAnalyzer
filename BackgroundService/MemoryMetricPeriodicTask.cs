@@ -51,7 +51,7 @@ namespace BackgroundService
             IReadOnlyList<ProcessDiagnosticInfo> diagnosticInfos = ProcessDiagnosticInfo.GetForProcesses();
             SystemDiagnosticInfo systemdiagnosticInfo =  SystemDiagnosticInfo.GetForCurrentSystem();
             SystemMemoryUsageReport usageReport = systemdiagnosticInfo.MemoryUsage.GetReport();
-            double ramUsagePercent = ((double)usageReport.CommittedSizeInBytes / (double)usageReport.TotalPhysicalSizeInBytes) * 100;
+            double ramUsagePercent = (double)100 - (((double)usageReport.AvailableSizeInBytes / (double)usageReport.CommittedSizeInBytes) * 100);
             uint totalPageFault = 0;
             ulong totalPageFileSize = 0;
             foreach (ProcessDiagnosticInfo process in diagnosticInfos)
@@ -68,11 +68,11 @@ namespace BackgroundService
                     }
                 }
             }
-            uint previousPageFault = (uint)(container.Values["previousPageFault"] ?? 0);
-            long previousTime = (long)(container.Values["previousTime"] ?? 0);
+            uint previousPageFault = (uint)(container.Values["previousPageFault"] ?? (uint)0);
+            long previousTime = (long)(container.Values["previousTime"] ?? (long)0);
             container.Values["previousPageFault"] = totalPageFault;
             container.Values["previousTime"] = DateTime.Now.ToBinary();
-            if (previousTime > 0)
+            if (previousTime != 0)
             {
                 DateTime previousDateTime = DateTime.FromBinary(previousTime);
                 uint pageFaultDiff = totalPageFault > previousPageFault ? (uint)totalPageFault - previousPageFault : 0;
