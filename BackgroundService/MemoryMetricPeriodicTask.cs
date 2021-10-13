@@ -43,7 +43,11 @@ namespace BackgroundService
 
         private async Task RunCoreAsync(CancellationToken cancellation)
         {
+            await Task.CompletedTask.ConfigureAwait(false);
             Process[] allProcess = Process.GetProcesses();
+            SystemDiagnosticInfo systemdiagnosticInfo =  SystemDiagnosticInfo.GetForCurrentSystem();
+            SystemMemoryUsageReport usageReport = systemdiagnosticInfo.MemoryUsage.GetReport();
+            double ramUsagePercent = ((double)usageReport.CommittedSizeInBytes / (double)usageReport.TotalPhysicalSizeInBytes) * 100;
             uint totalPageFault = 0;
             ulong totalPageFileSize = 0;
             foreach (Process process in allProcess)

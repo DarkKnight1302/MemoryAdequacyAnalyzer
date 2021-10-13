@@ -6,8 +6,8 @@
     using System.Text;
     using System.Threading.Tasks;
     using Windows.Storage;
-    using MemoryAdequacyAnalyzer.Models;
     using System.IO;
+    using MemoryAdequacyAnalyzer.Models;
 
     public class DataReaderWriter
     {
@@ -33,7 +33,7 @@
         /// <param name="file"></param>
         /// <param name="t1"></param>
         /// <param name="t2"></param>
-        public async void ReadData(DateTime t1, DateTime t2)
+        public void ReadData(DateTime t1, DateTime t2)
         {
             // do nothing now..
         }
