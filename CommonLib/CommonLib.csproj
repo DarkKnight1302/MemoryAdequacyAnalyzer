@@ -122,6 +122,7 @@
   <ItemGroup>
     <Compile Include="Models\DataModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\AnalyzerService.cs" />
     <Compile Include="Utils\DataReaderWriter.cs" />
     <EmbeddedResource Include="Properties\CommonLib.rd.xml" />
   </ItemGroup>
