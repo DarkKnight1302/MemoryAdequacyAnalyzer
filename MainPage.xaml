@@ -5,12 +5,11 @@
     xmlns:local="using:MemoryAdequacyAnalyzer"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
-    xmlns:lvc="using:LiveCharts.Uwp"
+    xmlns:Charting="using:WinRTXamlToolkit.Controls.DataVisualization.Charting"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     d:DesignWidth="600"
-    d:DesignHeight="400">
+    d:DesignHeight="900">
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -19,6 +18,8 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -64,5 +65,19 @@
         <TextBlock Text="{x:Bind RamUsage, Mode=TwoWay}" Foreground="Gray" Grid.Row="6" Grid.Column="1" Margin="5,5,5,5" />
         <TextBlock Text="Page Fault (process) :" Foreground="Gray" Grid.Row="7" Grid.Column="0" Margin="5,5,5,5"/>
         <TextBlock Text="{x:Bind PageFaultProcess, Mode=TwoWay}"  Foreground="Gray" Grid.Row="7" Grid.Column="1" Margin="5,5,5,5" />
+        <Grid Grid.Row="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Charting:Chart  Title="Ram Usage" Grid.ColumnSpan="2" x:Name="LineChart" HorizontalAlignment="Center" Width="800" Height="400" >
+                <Charting:LineSeries CornerRadius="10"  Foreground="Red" IndependentValuePath="CurrentTimeStamp" DependentValuePath="RamUsage" IsSelectionEnabled="True"/>
+             </Charting:Chart>
+            <Charting:Chart Title="Page Faults (per min)"  Grid.Column="2" Grid.ColumnSpan="2" x:Name="LineChart1" HorizontalAlignment="Center" Width="800" Height="400" >
+                <Charting:LineSeries CornerRadius="10"  Foreground="Red" IndependentValuePath="CurrentTimeStamp" DependentValuePath="PageFaultsPerMin" IsSelectionEnabled="True"/>
+            </Charting:Chart>
+        </Grid>
     </Grid>
 </Page>

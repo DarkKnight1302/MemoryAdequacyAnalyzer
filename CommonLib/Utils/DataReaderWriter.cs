@@ -24,10 +24,40 @@
         /// <param name="file"></param>
         /// <param name="t1"></param>
         /// <param name="t2"></param>
-        public List<DataModel> ReadData(DateTime t1, DateTime t2)
+        public async Task<List<DataModel>> ReadData(DateTime t1, DateTime t2)
         {
+            try
+            {
+                List<DataModel> dataEntry = new List<DataModel>();
+                DataModel dm;
+                StorageFile sampleFile = await localFolder.GetFileAsync("dataFile");
+                String stringContent = await FileIO.ReadTextAsync(sampleFile);
+                string[] enteries = stringContent.Split(Environment.NewLine);
+                foreach (string entry in enteries)
+                {
+                    if (entry == "")
+                    {
+                        continue;
+                    }
+                    if(DateTime.Compare(t1,DateTime.Parse(entry.Split('|')[0])) < 0 && DateTime.Compare(t2, DateTime.Parse(entry.Split('|')[0])) > 0)
+                    {
+                        dm = new DataModel
+                        {
+                            CurrentTimeStamp = DateTime.Parse(entry.Split('|')[0]),
+                            RamUsage = int.Parse(entry.Split('|')[1]),
+                            PageFileSize = ulong.Parse(entry.Split('|')[2]),
+                            PageFaultsPerMin = int.Parse(entry.Split('|')[3]),
+                        };
+                        dataEntry.Add(dm);
+                    }
+                   
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message + "\n" + ex.StackTrace);
+            }
             return new List<DataModel>();
-            // do nothing now..
         }
 
         // <summary>
@@ -36,11 +66,39 @@
         /// <param name="file"></param>
         /// <param name="t1"></param>
         /// <param name="t2"></param>
-        public List<DataModel> ReadDataFromBeginning()
+        public async Task<List<DataModel>> ReadDataFromBeginning()
         {
             DateTime dateTime = DateTime.Now;
-            return new List<DataModel>();
-            // do nothing now..
+            try
+            {
+                List<DataModel> dataEntry = new List<DataModel>();
+                DataModel dm;
+                StorageFile sampleFile = await localFolder.GetFileAsync("dataFile");
+                String stringContent = await FileIO.ReadTextAsync(sampleFile);
+                string[] enteries = stringContent.Split(Environment.NewLine);
+                foreach(string entry in enteries)
+                {
+                    if(entry == "")
+                    {
+                        continue;
+                    }
+                    dm = new DataModel
+                    {
+                        CurrentTimeStamp = DateTime.Parse(entry.Split('|')[0]),
+                        RamUsage = int.Parse(entry.Split('|')[1]),
+                        PageFileSize = ulong.Parse(entry.Split('|')[2]),
+                        PageFaultsPerMin = int.Parse(entry.Split('|')[3]),
+                    };
+                    dataEntry.Add(dm);
+                }
+                return dataEntry;
+                
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message + "\n" + ex.StackTrace);
+            }
+            return null;
         }
 
         /// <summary>

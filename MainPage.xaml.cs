@@ -16,7 +16,10 @@ using MemoryAdequacyAnalyzer.Utils;
 using MemoryAdequacyAnalyzer.Models;
 using System.Threading.Tasks;
 using Windows.UI.Notifications;
+using WinRTXamlToolkit.Controls.DataVisualization.Charting;
 using System.Threading;
+using System.Diagnostics;
+using Windows.UI.Core;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -32,21 +35,44 @@ namespace MemoryAdequacyAnalyzer
         public string IsRamUpgradeRequired = "Yes";
         public int AnalysingSince = 100;
         private DataReaderWriter drwObj = DataReaderWriter.Instance;
+        public List<Phone> phones;
 
 
         public MainPage()
         {
             this.InitializeComponent();
+            _ = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => ShowDashboard().ConfigureAwait(false));
         }
 
-        private async void StartAnalysing_Handler(object sender, RoutedEventArgs e)
+        private void LoadChartContent(List<DataModel> dataList)
+        {
+            try
+            {
+                (LineChart.Series[0] as LineSeries).ItemsSource = dataList;
+                (LineChart1.Series[0] as LineSeries).ItemsSource = dataList;
+            } 
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+            
+        }
+
+        private async Task<object> ShowDashboard()
+        {
+            var tempList = await drwObj.ReadDataFromBeginning();
+            List<DataModel> dataList = tempList;
+            LoadChartContent(dataList);
+            return Task.FromResult<object>(null);
+        }
+        private void StartAnalysing_Handler(object sender, RoutedEventArgs e)
         {
           //await this.drwObj.WriteData(new DataModel(DateTime.Now, 3, 5, 4));
         }
 
         private void StopAnalysing_Handler(object sender, RoutedEventArgs e)
         {
-
+            // stop the background task if running.
         }
 
         private void GenerateReport_Handler(object sender, RoutedEventArgs e)
@@ -72,5 +98,11 @@ namespace MemoryAdequacyAnalyzer
             ToastNotifier.Show(toast);
             return Task.FromResult<object>(null);  
         }
+    }
+
+    public class Phone
+    {
+        public string Name { get; set; }
+        public int Amount { get; set; }
     }
 }
