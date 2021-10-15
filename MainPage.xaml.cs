@@ -1,25 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 using MemoryAdequacyAnalyzer.Utils;
 using MemoryAdequacyAnalyzer.Models;
 using System.Threading.Tasks;
 using Windows.UI.Notifications;
 using WinRTXamlToolkit.Controls.DataVisualization.Charting;
-using System.Threading;
 using System.Diagnostics;
 using Windows.UI.Core;
+using Windows.ApplicationModel.Background;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -41,6 +32,7 @@ namespace MemoryAdequacyAnalyzer
         {
             this.InitializeComponent();
             _ = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => ShowDashboard().ConfigureAwait(false));
+            //CheckBackgroundTaskStarted();
         }
 
         /// <summary>
@@ -61,6 +53,21 @@ namespace MemoryAdequacyAnalyzer
             
         }
 
+        private void CheckBackgroundTaskStarted()
+        {
+            if (started)
+            {
+                // If anything to be done.
+            }
+        }
+
+        public bool started
+        {
+            get { return BackgroundTaskRegistration.AllTasks.Count > 0; }
+        }
+
+
+
         /// <summary>
         /// Show the dashboard in Main Page View.
         /// </summary>
@@ -80,8 +87,14 @@ namespace MemoryAdequacyAnalyzer
         /// <param name="e"></param>
         private void StartAnalysing_Handler(object sender, RoutedEventArgs e)
         {
-           // @Todo
-          //await this.drwObj.WriteData(new DataModel(DateTime.Now, 3, 5, 4));
+            try
+            {
+                BackgroundService.MemoryMetricPeriodicTask.Register();
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
         }
 
         /// <summary>
@@ -91,7 +104,18 @@ namespace MemoryAdequacyAnalyzer
         /// <param name="e"></param>
         private void StopAnalysing_Handler(object sender, RoutedEventArgs e)
         {
-            // @Todo
+            try
+            {
+                var task = BackgroundTaskRegistration.AllTasks.Values.First();
+                if (task.Name == "MemoryMetricPeriodicTask")
+                {
+                    task.Unregister(true);
+                }
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
         }
 
         /// <summary>
