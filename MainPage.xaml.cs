@@ -35,7 +35,6 @@ namespace MemoryAdequacyAnalyzer
         public string IsRamUpgradeRequired = "Yes";
         public int AnalysingSince = 100;
         private DataReaderWriter drwObj = DataReaderWriter.Instance;
-        public List<Phone> phones;
 
 
         public MainPage()
@@ -44,6 +43,10 @@ namespace MemoryAdequacyAnalyzer
             _ = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => ShowDashboard().ConfigureAwait(false));
         }
 
+        /// <summary>
+        /// Load the chart based on item source.
+        /// </summary>
+        /// <param name="dataList"></param>
         private void LoadChartContent(List<DataModel> dataList)
         {
             try
@@ -58,6 +61,10 @@ namespace MemoryAdequacyAnalyzer
             
         }
 
+        /// <summary>
+        /// Show the dashboard in Main Page View.
+        /// </summary>
+        /// <returns></returns>
         private async Task<object> ShowDashboard()
         {
             var tempList = await drwObj.ReadDataFromBeginning();
@@ -65,16 +72,33 @@ namespace MemoryAdequacyAnalyzer
             LoadChartContent(dataList);
             return Task.FromResult<object>(null);
         }
+
+        /// <summary>
+        /// Start the background task if not started.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void StartAnalysing_Handler(object sender, RoutedEventArgs e)
         {
+           // @Todo
           //await this.drwObj.WriteData(new DataModel(DateTime.Now, 3, 5, 4));
         }
 
+        /// <summary>
+        /// Stop the background task if running.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void StopAnalysing_Handler(object sender, RoutedEventArgs e)
         {
-            // stop the background task if running.
+            // @Todo
         }
 
+        /// <summary>
+        /// Generate the report after reading the data file.
+        /// </summary>
+        /// <param name="sender">sender.</param>
+        /// <param name="e">e</param>
         private void GenerateReport_Handler(object sender, RoutedEventArgs e)
         {
             Task.Run(async () => await ShowToastNotification("Report Generated", "Voila!! Your report is ready to be viewed :-)"));
@@ -98,11 +122,5 @@ namespace MemoryAdequacyAnalyzer
             ToastNotifier.Show(toast);
             return Task.FromResult<object>(null);  
         }
-    }
-
-    public class Phone
-    {
-        public string Name { get; set; }
-        public int Amount { get; set; }
     }
 }
