@@ -50,9 +50,8 @@
                         {
                             CurrentTimeStamp = DateTime.Parse(entry.Split('|')[0]),
                             RamUsage = int.Parse(entry.Split('|')[1]),
-                            PageFileSize = ulong.Parse(entry.Split('|')[2]),
+                            PagedMemorySizeInBytes = ulong.Parse(entry.Split('|')[2]),
                             PageFaultsPerMin = int.Parse(entry.Split('|')[3]),
-                            VirtualMemorySizeInBytes = ulong.Parse(entry.Split('|')[4]),
                         };
                         dataEntry.Add(dm);
                     }
@@ -96,9 +95,8 @@
                     {
                         CurrentTimeStamp = DateTime.Parse(entry.Split('|')[0]),
                         RamUsage = int.Parse(entry.Split('|')[1]),
-                        PageFileSize = ulong.Parse(entry.Split('|')[2]),
+                        PagedMemorySizeInBytes = ulong.Parse(entry.Split('|')[2]),
                         PageFaultsPerMin = int.Parse(entry.Split('|')[3]),
-                        VirtualMemorySizeInBytes = ulong.Parse(entry.Split('|')[4]),
                     };
                     dataEntry.Add(dm);
                 }
@@ -125,7 +123,7 @@
             {
                 semaphore.WaitOne();
                 StorageFile dataFile = await this.localFolder.CreateFileAsync("dataFile", CreationCollisionOption.OpenIfExists);
-                var currentEntry = dm.CurrentTimeStamp.ToString() + "|" + dm.RamUsage + "|" + dm.PageFileSize + "|" + dm.PageFaultsPerMin +  "|" + dm.VirtualMemorySizeInBytes + "|" + Environment.NewLine;
+                var currentEntry = dm.CurrentTimeStamp.ToString() + "|" + dm.RamUsage + "|" + dm.PagedMemorySizeInBytes + "|" + dm.PageFaultsPerMin + "|" + Environment.NewLine;
                 await FileIO.AppendTextAsync(dataFile, currentEntry);
             }
             catch (Exception ex)

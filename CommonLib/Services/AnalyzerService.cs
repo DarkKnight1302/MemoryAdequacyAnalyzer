@@ -5,6 +5,7 @@ using MemoryAdequacyAnalyzer.Utils;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Windows.System.Diagnostics;
 
 namespace CommonLib.Services
 {
@@ -14,7 +15,7 @@ namespace CommonLib.Services
         private static object instanceLock = new object();
         private const int RamUsagePercentThreshold = 70;
         private const long pageFaultPerMinThreshold = 18000; // 300 pages per sec.
-        private const long pageFileSizeInBytesThreshold = 5368709120; // 5 gb.
+        private const long pagingInBytesThreshold = 2147483648; // 2 gb.
 
         public static AnalyzerService GetInstance()
         {
@@ -42,8 +43,8 @@ namespace CommonLib.Services
             List<DataModel> dataModelList = await dataReaderWriter.ReadDataFromBeginning().ConfigureAwait(false);
             int highRamCount = 0;
             int highPageFaultCount = 0;
-            int highPageFileSizeCount = 0;
-            ulong TotalVirtualMemoryInGb = 0;
+            int highPagingSizeCount = 0;
+            ulong TotalPagingMemoryInGb = 0;
             ulong bytesInGb = 1073741824;
             ulong virtualMemoryCount = 0;
             DateTime start = dataModelList[0].CurrentTimeStamp;
@@ -56,9 +57,9 @@ namespace CommonLib.Services
                     highRamCount++;
                     conditionCheckCount++;
                 }
-                if (dataModel.PageFileSize > pageFileSizeInBytesThreshold)
+                if (dataModel.PagedMemorySizeInBytes > pagingInBytesThreshold)
                 {
-                    highPageFileSizeCount++;
+                    highPagingSizeCount++;
                     conditionCheckCount++;
                 }
                 if (dataModel.PageFaultsPerMin >= pageFaultPerMinThreshold)
@@ -68,22 +69,24 @@ namespace CommonLib.Services
                 }
                 if (conditionCheckCount == 3)
                 {
-                    TotalVirtualMemoryInGb += (ulong)(dataModel.VirtualMemorySizeInBytes / bytesInGb);
+                    TotalPagingMemoryInGb += (ulong)(dataModel.PagedMemorySizeInBytes / bytesInGb);
                     virtualMemoryCount++;
                 }
             }
             int size = dataModelList.Count;
-            double averageVirtualMemory = (double)TotalVirtualMemoryInGb / (double)virtualMemoryCount;
+            double averagePagedMemory = (double)TotalPagingMemoryInGb / (double)virtualMemoryCount;
             double highRamCountPercent = (double)(highRamCount / size) * (double)100;
-            double highPageFileSizePercent = (double)(highPageFileSizeCount / size) * (double)100 ;
+            double highPagingSizePercent = (double)(highPagingSizeCount / size) * (double)100 ;
             double highPageFaultCountPercent = (double)(highPageFaultCount / size) * (double)100 ;
-
-            if (highRamCountPercent > 30 && highPageFileSizePercent > 30 && highPageFaultCountPercent > 30)
+            SystemMemoryUsage usage = SystemDiagnosticInfo.GetForCurrentSystem().MemoryUsage;
+            ulong existingRamSize = usage.GetReport().TotalPhysicalSizeInBytes;
+            double RamSizeInGb = (double)(existingRamSize / bytesInGb);
+            if (highRamCountPercent > 30 && highPagingSizePercent > 30 && highPageFaultCountPercent > 30)
             {
                 return new AnalysisResponse
                 {
                     IsRamUpgradeNeeded = true,
-                    RecommendedRamSize = averageVirtualMemory,
+                    RecommendedRamSize = (averagePagedMemory + RamSizeInGb),
                     AnalysisHours = end.Subtract(start).Hours,
                 };
             }
