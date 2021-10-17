@@ -51,7 +51,7 @@ namespace BackgroundService
             IReadOnlyList<ProcessDiagnosticInfo> diagnosticInfos = ProcessDiagnosticInfo.GetForProcesses();
             SystemDiagnosticInfo systemdiagnosticInfo =  SystemDiagnosticInfo.GetForCurrentSystem();
             SystemMemoryUsageReport usageReport = systemdiagnosticInfo.MemoryUsage.GetReport();
-            double ramUsagePercent = (double)100 - (((double)usageReport.AvailableSizeInBytes / (double)usageReport.CommittedSizeInBytes) * 100);
+            double ramUsagePercent = (double)100 - (((double)usageReport.AvailableSizeInBytes / (double)usageReport.TotalPhysicalSizeInBytes) * 100);
             uint totalPageFault = 0;
             ulong totalPageFileSize = 0;
             foreach (ProcessDiagnosticInfo process in diagnosticInfos)
