@@ -11,6 +11,8 @@ using WinRTXamlToolkit.Controls.DataVisualization.Charting;
 using System.Diagnostics;
 using Windows.UI.Core;
 using Windows.ApplicationModel.Background;
+using CommonLib.Services;
+using CommonLib.Models;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -45,12 +47,12 @@ namespace MemoryAdequacyAnalyzer
             {
                 (LineChart.Series[0] as LineSeries).ItemsSource = dataList;
                 (LineChart1.Series[0] as LineSeries).ItemsSource = dataList;
-            } 
-            catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
             }
-            
+
         }
 
         private void CheckBackgroundTaskStarted()
@@ -91,7 +93,7 @@ namespace MemoryAdequacyAnalyzer
             {
                 BackgroundService.MemoryMetricPeriodicTask.Register();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
             }
@@ -112,7 +114,7 @@ namespace MemoryAdequacyAnalyzer
                     task.Unregister(true);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
             }
@@ -125,7 +127,11 @@ namespace MemoryAdequacyAnalyzer
         /// <param name="e">e</param>
         private void GenerateReport_Handler(object sender, RoutedEventArgs e)
         {
-            Task.Run(async () => await ShowToastNotification("Report Generated", "Voila!! Your report is ready to be viewed :-)"));
+            Task.Run(async () =>
+            {
+                AnalysisResponse response = await AnalyzerService.GetInstance().AnalyzeData();
+                await ShowToastNotification("Report Generated", "Voila!! Your report is ready to be viewed :-)");
+            });
         }
 
         private async Task<object> ShowToastNotification(string title, string stringContent)
@@ -144,7 +150,7 @@ namespace MemoryAdequacyAnalyzer
             ToastNotification toast = new ToastNotification(toastXml);
             toast.ExpirationTime = DateTime.Now.AddSeconds(4);
             ToastNotifier.Show(toast);
-            return Task.FromResult<object>(null);  
+            return Task.FromResult<object>(null);
         }
     }
 }

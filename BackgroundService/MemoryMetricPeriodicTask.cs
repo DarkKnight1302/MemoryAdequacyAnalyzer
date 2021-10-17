@@ -54,6 +54,7 @@ namespace BackgroundService
             double ramUsagePercent = (double)100 - (((double)usageReport.AvailableSizeInBytes / (double)usageReport.TotalPhysicalSizeInBytes) * 100);
             uint totalPageFault = 0;
             ulong totalPageFileSize = 0;
+            ulong virtualMemorySizeInBytes = 0;
             foreach (ProcessDiagnosticInfo process in diagnosticInfos)
             {
                 if (process != null)
@@ -61,6 +62,7 @@ namespace BackgroundService
                     ProcessMemoryUsageReport report = process.MemoryUsage.GetReport();
                     totalPageFault += report.PageFaultCount;
                     totalPageFileSize += report.PageFileSizeInBytes;
+                    virtualMemorySizeInBytes += report.VirtualMemorySizeInBytes;
                     if (report.PageFaultCount > (uint)(container.Values["maxPageFault"] ?? (uint)0))
                     {
                         container.Values["maxPageFault"] = (uint)report.PageFaultCount;
@@ -85,6 +87,7 @@ namespace BackgroundService
                     RamUsage = (int)ramUsagePercent,
                     PageFaultsPerMin = (int)pageFaultPerMin,
                     PageFileSize = totalPageFileSize,
+                    VirtualMemorySizeInBytes = virtualMemorySizeInBytes,
                 };
                 await readerWriter.WriteData(dataModel).ConfigureAwait(false);
             }

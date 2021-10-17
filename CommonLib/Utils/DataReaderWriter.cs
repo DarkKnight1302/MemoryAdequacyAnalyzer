@@ -14,9 +14,13 @@
     public class DataReaderWriter
     {
         private StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-        private static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
+        private static Semaphore semaphore = new Semaphore(1, 1, "dataRead");
 
         public static DataReaderWriter Instance { get; } = new DataReaderWriter();
+
+        private DataReaderWriter()
+        {
+        }
 
         /// <summary>
         /// Return the data between timestamp t1 and t2.
@@ -28,6 +32,7 @@
         {
             try
             {
+                semaphore.WaitOne();
                 List<DataModel> dataEntry = new List<DataModel>();
                 DataModel dm;
                 StorageFile sampleFile = await localFolder.GetFileAsync("dataFile");
@@ -47,6 +52,7 @@
                             RamUsage = int.Parse(entry.Split('|')[1]),
                             PageFileSize = ulong.Parse(entry.Split('|')[2]),
                             PageFaultsPerMin = int.Parse(entry.Split('|')[3]),
+                            VirtualMemorySizeInBytes = ulong.Parse(entry.Split('|')[4]),
                         };
                         dataEntry.Add(dm);
                     }
@@ -56,6 +62,9 @@
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message + "\n" + ex.StackTrace);
+            } finally
+            {
+                semaphore.Release();
             }
             return new List<DataModel>();
         }
@@ -71,6 +80,7 @@
             DateTime dateTime = DateTime.Now;
             try
             {
+                semaphore.WaitOne();
                 List<DataModel> dataEntry = new List<DataModel>();
                 DataModel dm;
                 StorageFile sampleFile = await localFolder.GetFileAsync("dataFile");
@@ -88,6 +98,7 @@
                         RamUsage = int.Parse(entry.Split('|')[1]),
                         PageFileSize = ulong.Parse(entry.Split('|')[2]),
                         PageFaultsPerMin = int.Parse(entry.Split('|')[3]),
+                        VirtualMemorySizeInBytes = ulong.Parse(entry.Split('|')[4]),
                     };
                     dataEntry.Add(dm);
                 }
@@ -97,6 +108,9 @@
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message + "\n" + ex.StackTrace);
+            } finally
+            {
+                semaphore.Release();
             }
             return null;
         }
@@ -109,9 +123,9 @@
         {
             try
             {
-                await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+                semaphore.WaitOne();
                 StorageFile dataFile = await this.localFolder.CreateFileAsync("dataFile", CreationCollisionOption.OpenIfExists);
-                var currentEntry = dm.CurrentTimeStamp.ToString() + "|" + dm.RamUsage + "|" + dm.PageFileSize + "|" + dm.PageFaultsPerMin +  "|" + Environment.NewLine;
+                var currentEntry = dm.CurrentTimeStamp.ToString() + "|" + dm.RamUsage + "|" + dm.PageFileSize + "|" + dm.PageFaultsPerMin +  "|" + dm.VirtualMemorySizeInBytes + "|" + Environment.NewLine;
                 await FileIO.AppendTextAsync(dataFile, currentEntry);
             }
             catch (Exception ex)
@@ -119,7 +133,7 @@
                 Debug.WriteLine(ex.Message + "\n" +  ex.StackTrace);
             } finally
             {
-                semaphoreSlim.Release();
+                semaphore.Release();
             }
         }
     }
