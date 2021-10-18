@@ -30,6 +30,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         
         <StackPanel Background="#F05A28" Orientation='Horizontal' Grid.ColumnSpan="3">
@@ -86,7 +87,7 @@
             <TextBlock TextAlignment="Center"  FontSize="13" FontWeight="Bold" Text="{x:Bind ProgressMsg, Mode=TwoWay}" ></TextBlock>
         </StackPanel>
         
-        <Grid Grid.Row="8">
+        <Grid Grid.Row="8" Margin="0 20 0 0" Visibility="{x:Bind ChartVisibility, Mode=TwoWay}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
@@ -96,10 +97,15 @@
             <Charting:Chart  Title="Ram Usage" Grid.ColumnSpan="2" x:Name="LineChart" HorizontalAlignment="Center" Width="800" Height="400" >
                 <Charting:LineSeries CornerRadius="10"  Foreground="Red" IndependentValuePath="CurrentTimeStamp" DependentValuePath="RamUsage" IsSelectionEnabled="True"/>
             </Charting:Chart>
-            <Charting:Chart Title="Page Faults (per min)"  Grid.Column="2" Grid.ColumnSpan="2" x:Name="LineChart1" HorizontalAlignment="Center" Width="800" Height="400" >
-                <Charting:LineSeries CornerRadius="10"  Foreground="Red" IndependentValuePath="CurrentTimeStamp" DependentValuePath="PageFaultsPerMin" IsSelectionEnabled="True"/>
+            <Charting:Chart Title="PagedMemorySizeInBytes (in Gb)"  Grid.Column="2" Grid.ColumnSpan="2" x:Name="LineChart1" HorizontalAlignment="Center" Width="800" Height="400" >
+                <Charting:LineSeries CornerRadius="10"  Foreground="Red" IndependentValuePath="CurrentTimeStamp" DependentValuePath="PagedMemorySizeInBytes" IsSelectionEnabled="True"/>
             </Charting:Chart>
         </Grid>
+        <StackPanel Orientation="Horizontal" Grid.Row="9" HorizontalAlignment="Center" Margin="0 10 0 0">
+            <DatePicker x:Name="StartDate" Header="Pick a Start date" Margin="5 0 10 0"/>
+            <DatePicker x:Name="EndDate" Header="Pick a End date"   Margin="0 0 10 0"/>
+            <Button Content="Submit" Click="ShowDashBoardBetweenDates_Handler" VerticalAlignment="Center" Margin="0 18 0 0"></Button>
+        </StackPanel>
         
     </Grid>
 </Page>

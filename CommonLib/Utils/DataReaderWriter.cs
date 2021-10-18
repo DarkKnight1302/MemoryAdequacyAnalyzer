@@ -44,7 +44,7 @@
                     {
                         continue;
                     }
-                    if(DateTime.Compare(t1,DateTime.Parse(entry.Split('|')[0])) < 0 && DateTime.Compare(t2, DateTime.Parse(entry.Split('|')[0])) > 0)
+                    if (DateTime.Compare(t1, DateTime.Parse(entry.Split('|')[0])) < 0 && DateTime.Compare(t2, DateTime.Parse(entry.Split('|')[0])) > 0)
                     {
                         dm = new DataModel
                         {
@@ -55,13 +55,15 @@
                         };
                         dataEntry.Add(dm);
                     }
-                   
+
                 }
+                return dataEntry;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message + "\n" + ex.StackTrace);
-            } finally
+            }
+            finally
             {
                 semaphore.Release();
             }
@@ -85,9 +87,9 @@
                 StorageFile sampleFile = await localFolder.GetFileAsync("dataFile");
                 String stringContent = await FileIO.ReadTextAsync(sampleFile);
                 string[] enteries = stringContent.Split(Environment.NewLine);
-                foreach(string entry in enteries)
+                foreach (string entry in enteries)
                 {
-                    if(entry == "")
+                    if (entry == "")
                     {
                         continue;
                     }
@@ -101,12 +103,13 @@
                     dataEntry.Add(dm);
                 }
                 return dataEntry;
-                
+
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message + "\n" + ex.StackTrace);
-            } finally
+            }
+            finally
             {
                 semaphore.Release();
             }
@@ -128,8 +131,9 @@
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message + "\n" +  ex.StackTrace);
-            } finally
+                Debug.WriteLine(ex.Message + "\n" + ex.StackTrace);
+            }
+            finally
             {
                 semaphore.Release();
             }

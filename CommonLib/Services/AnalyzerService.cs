@@ -1,5 +1,4 @@
-﻿
-using CommonLib.Models;
+﻿using CommonLib.Models;
 using MemoryAdequacyAnalyzer.Models;
 using MemoryAdequacyAnalyzer.Utils;
 using System;
@@ -76,8 +75,8 @@ namespace CommonLib.Services
             int size = dataModelList.Count;
             double averagePagedMemory = (double)TotalPagingMemoryInGb / (double)virtualMemoryCount;
             double highRamCountPercent = (double)(highRamCount / size) * (double)100;
-            double highPagingSizePercent = (double)(highPagingSizeCount / size) * (double)100 ;
-            double highPageFaultCountPercent = (double)(highPageFaultCount / size) * (double)100 ;
+            double highPagingSizePercent = (double)(highPagingSizeCount / size) * (double)100;
+            double highPageFaultCountPercent = (double)(highPageFaultCount / size) * (double)100;
             SystemMemoryUsage usage = SystemDiagnosticInfo.GetForCurrentSystem().MemoryUsage;
             ulong existingRamSize = usage.GetReport().TotalPhysicalSizeInBytes;
             double RamSizeInGb = (double)(existingRamSize / bytesInGb);

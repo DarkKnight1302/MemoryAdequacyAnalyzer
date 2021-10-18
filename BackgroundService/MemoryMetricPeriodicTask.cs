@@ -51,7 +51,7 @@ namespace BackgroundService
         {
             await AppDiagnosticInfo.RequestAccessAsync();
             IReadOnlyList<ProcessDiagnosticInfo> diagnosticInfos = ProcessDiagnosticInfo.GetForProcesses();
-            SystemDiagnosticInfo systemdiagnosticInfo =  SystemDiagnosticInfo.GetForCurrentSystem();
+            SystemDiagnosticInfo systemdiagnosticInfo = SystemDiagnosticInfo.GetForCurrentSystem();
             SystemMemoryUsageReport usageReport = systemdiagnosticInfo.MemoryUsage.GetReport();
             double ramUsagePercent = (double)100 - (((double)usageReport.AvailableSizeInBytes / (double)usageReport.TotalPhysicalSizeInBytes) * 100);
             uint totalPageFault = 0;
@@ -63,7 +63,7 @@ namespace BackgroundService
                     if (process != null)
                     {
                         ProcessMemoryUsageReport report = process.MemoryUsage.GetReport();
-                        if (!unimportantProcess.Contains(process.ExecutableFileName) && process.ExecutableFileName.EndsWith(".exe"))
+                        if (!unimportantProcess.Contains(process.ExecutableFileName) && process.ExecutableFileName.EndsWith(".exe") && report != null)
                         {
                             totalPageFault += report.PageFaultCount;
                             if (report.PageFaultCount > (uint)(container.Values["maxPageFault"] ?? (uint)0))
@@ -72,9 +72,13 @@ namespace BackgroundService
                                 container.Values["maxPageFaultProcess"] = process.ExecutableFileName;
                             }
                         }
-                        pagedMemorySizeInBytes += report.PagedPoolSizeInBytes;
+                        if (report != null)
+                        {
+                            pagedMemorySizeInBytes += report.PagedPoolSizeInBytes;
+                        }
                     }
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     Console.WriteLine(e);
                 }

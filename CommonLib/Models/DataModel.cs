@@ -8,12 +8,12 @@ namespace MemoryAdequacyAnalyzer.Models
 {
     public class DataModel
     {
-        public DateTime CurrentTimeStamp {  get; set; }
+        public DateTime CurrentTimeStamp { get; set; }
 
         public int RamUsage { get; set; }
 
         public int PageFaultsPerMin { get; set; }
 
-        public ulong PagedMemorySizeInBytes {  get; set; }
+        public ulong PagedMemorySizeInBytes { get; set; }
     }
 }

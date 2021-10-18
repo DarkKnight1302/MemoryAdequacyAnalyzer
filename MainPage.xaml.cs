@@ -15,6 +15,7 @@ using CommonLib.Services;
 using CommonLib.Models;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Windows.UI.Popups;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -43,6 +44,7 @@ namespace MemoryAdequacyAnalyzer
         public string CurrentStatus { get { return currentStatus; } set { currentStatus = value; OnPropertyChanged(); } }
         public string ProgressMsg {  get { return progressMsg; }  set { progressMsg = value; OnPropertyChanged(); } }
         public string ProgressRingVisibility { get { return progressRingVisibility; } set { progressRingVisibility = value; OnPropertyChanged(); } }
+        public string ChartVisibility {  get { return chartVisibility;  } set { chartVisibility = value; OnPropertyChanged(); } }
 
         private DataReaderWriter drwObj = DataReaderWriter.Instance;
         private string reportVisibility="Collapsed";
@@ -53,6 +55,7 @@ namespace MemoryAdequacyAnalyzer
         private string recommendedRamSize = "";
         private int analysingSince = 0;
         private string pageFaultProcess = "";
+        private string chartVisibility = "Visible";
 
         public MainPage()
         {
@@ -69,14 +72,37 @@ namespace MemoryAdequacyAnalyzer
         {
             try
             {
-                (LineChart.Series[0] as LineSeries).ItemsSource = dataList;
-                (LineChart1.Series[0] as LineSeries).ItemsSource = dataList;
+                if (dataList != null)
+                {
+                    (LineChart.Series[0] as LineSeries).ItemsSource = dataList;
+                    List<DataModel> tempList = ConvertToGb(dataList);
+                    (LineChart1.Series[0] as LineSeries).ItemsSource = tempList;
+                    ChartVisibility = "Visible";
+                } 
+                else
+                {
+                    ChartVisibility = "Collapsed";
+                }
+                
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
             }
 
+        }
+
+        private List<DataModel> ConvertToGb(List<DataModel> dataList)
+        {
+            ulong bytesInGb = 1073741824;
+            List<DataModel> tempList = new List<DataModel>();
+            foreach (DataModel currEntry in dataList)
+            {
+                currEntry.PagedMemorySizeInBytes = currEntry.PagedMemorySizeInBytes / bytesInGb;
+                tempList.Add(currEntry);
+            }
+
+            return tempList;
         }
 
         private void CheckBackgroundTaskStarted()
@@ -211,6 +237,41 @@ namespace MemoryAdequacyAnalyzer
             toast.ExpirationTime = DateTime.Now.AddSeconds(4);
             ToastNotifier.Show(toast);
             return Task.FromResult<object>(null);
+        }
+
+        private async void ShowDashBoardBetweenDates_Handler(object sender, RoutedEventArgs e)
+        {
+            DateTime startDate = DateTime.Parse(StartDate.Date.ToString());
+            DateTime endDate = DateTime.Parse(EndDate.Date.ToString());
+
+            // no selction of any date.
+            if (startDate.Year == 1601 || endDate.Year == 1601)
+            {
+                var msg = new MessageDialog("Please select valid dates");
+                await msg.ShowAsync();
+                return;
+            }
+
+            if (DateTime.Compare(startDate, endDate) > 0)
+            {
+                var msg = new MessageDialog("Start Date can't be greater than End Date");
+                await msg.ShowAsync();
+                return;
+            }
+
+            var tempList = await drwObj.ReadData(startDate, endDate);
+            if (tempList.Count == 0)
+            {
+                var msg = new MessageDialog("No any data between selected date. Hence defaulting to till latest date");
+                await msg.ShowAsync();
+                return;
+            }
+            else
+            {
+                List<DataModel> dataList = tempList;
+                LoadChartContent(dataList);
+                return;
+            }
         }
     }
 }
