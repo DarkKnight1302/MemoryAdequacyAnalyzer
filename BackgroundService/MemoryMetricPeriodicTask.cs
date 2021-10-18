@@ -60,14 +60,18 @@ namespace BackgroundService
                 if (process != null)
                 {
                     ProcessMemoryUsageReport report = process.MemoryUsage.GetReport();
-                    totalPageFault += report.PageFaultCount;
-                    totalPageFileSize += report.PageFileSizeInBytes;
-                    virtualMemorySizeInBytes += report.VirtualMemorySizeInBytes;
-                    if (report.PageFaultCount > (uint)(container.Values["maxPageFault"] ?? (uint)0))
+                    if (report != null)
                     {
-                        container.Values["maxPageFault"] = (uint)report.PageFaultCount;
-                        container.Values["maxPageFaultProcess"] = process.ExecutableFileName;
+                        totalPageFault += report.PageFaultCount;
+                        totalPageFileSize += report.PageFileSizeInBytes;
+                        virtualMemorySizeInBytes += report.VirtualMemorySizeInBytes;
+                        if (report.PageFaultCount > (uint)(container.Values["maxPageFault"] ?? (uint)0))
+                        {
+                            container.Values["maxPageFault"] = (uint)report.PageFaultCount;
+                            container.Values["maxPageFaultProcess"] = process.ExecutableFileName;
+                        }
                     }
+                    
                 }
             }
             uint previousPageFault = (uint)(container.Values["previousPageFault"] ?? (uint)0);

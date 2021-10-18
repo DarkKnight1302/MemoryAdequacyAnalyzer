@@ -13,6 +13,8 @@ using Windows.UI.Core;
 using Windows.ApplicationModel.Background;
 using CommonLib.Services;
 using CommonLib.Models;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -21,20 +23,42 @@ namespace MemoryAdequacyAnalyzer
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class MainPage : Page
+    public sealed partial class MainPage : Page, INotifyPropertyChanged
     {
-        public string RamUsage = "20Mb";
-        public string PageFaultProcess = "Teams";
-        public string IsRamUpgradeRequired = "Yes";
-        public int AnalysingSince = 100;
-        private DataReaderWriter drwObj = DataReaderWriter.Instance;
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            var handler = PropertyChanged;
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
 
+        public string RecommendedRamSize { get { return recommendedRamSize; } set { recommendedRamSize = value; OnPropertyChanged(); } }
+        public string PageFaultProcess { get { return pageFaultProcess; } set { pageFaultProcess = value; OnPropertyChanged(); } }
+        public string IsRamUpgradeRequired { get { return isRamUpgradeRequired; } set { isRamUpgradeRequired = value; OnPropertyChanged(); } }
+        public int AnalysingSince { get { return analysingSince;  } set { analysingSince = value; OnPropertyChanged(); } }
+        public string ReportVisibility { get { return reportVisibility; }  set { reportVisibility = value; OnPropertyChanged(); } }
+        public string CurrentStatus { get { return currentStatus; } set { currentStatus = value; OnPropertyChanged(); } }
+        public string ProgressMsg {  get { return progressMsg; }  set { progressMsg = value; OnPropertyChanged(); } }
+        public string ProgressRingVisibility { get { return progressRingVisibility; } set { progressRingVisibility = value; OnPropertyChanged(); } }
+
+        private DataReaderWriter drwObj = DataReaderWriter.Instance;
+        private string reportVisibility="Collapsed";
+        private string currentStatus = "";
+        private string progressMsg = "";
+        private string progressRingVisibility = "Collapsed";
+        private string isRamUpgradeRequired = "Yes";
+        private string recommendedRamSize = "";
+        private int analysingSince = 0;
+        private string pageFaultProcess = "";
 
         public MainPage()
         {
             this.InitializeComponent();
             _ = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => ShowDashboard().ConfigureAwait(false));
-            //CheckBackgroundTaskStarted();
+            CheckBackgroundTaskStarted();
         }
 
         /// <summary>
@@ -59,7 +83,7 @@ namespace MemoryAdequacyAnalyzer
         {
             if (started)
             {
-                // If anything to be done.
+                CurrentStatus = "Background Task is Running ...";
             }
         }
 
@@ -67,8 +91,6 @@ namespace MemoryAdequacyAnalyzer
         {
             get { return BackgroundTaskRegistration.AllTasks.Count > 0; }
         }
-
-
 
         /// <summary>
         /// Show the dashboard in Main Page View.
@@ -92,6 +114,7 @@ namespace MemoryAdequacyAnalyzer
             try
             {
                 BackgroundService.MemoryMetricPeriodicTask.Register();
+                CurrentStatus = "Background Task is Running ...";
             }
             catch (Exception ex)
             {
@@ -113,6 +136,7 @@ namespace MemoryAdequacyAnalyzer
                 {
                     task.Unregister(true);
                 }
+                this.CurrentStatus = "Background Process is Stopped ...";
             }
             catch (Exception ex)
             {
@@ -127,14 +151,53 @@ namespace MemoryAdequacyAnalyzer
         /// <param name="e">e</param>
         private void GenerateReport_Handler(object sender, RoutedEventArgs e)
         {
+            
             Task.Run(async () =>
             {
-                AnalysisResponse response = await AnalyzerService.GetInstance().AnalyzeData();
-                await ShowToastNotification("Report Generated", "Voila!! Your report is ready to be viewed :-)");
+                try
+                {
+                    await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, ()=>ShowProgressRing(true));
+                    AnalysisResponse response = await AnalyzerService.GetInstance().AnalyzeData();
+                    if ( response != null )
+                    {
+                        await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => PopulatePerformanceReport(response));
+                    }
+                    await Task.Delay(5000);
+                    await ShowToastNotification("Report Generated", "Voila!! Your report is ready to be viewed :-)");
+                    await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => ShowProgressRing(false));
+                } 
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+                
             });
+            
         }
 
-        private async Task<object> ShowToastNotification(string title, string stringContent)
+        private void PopulatePerformanceReport(AnalysisResponse response)
+        {
+            IsRamUpgradeRequired = response.IsRamUpgradeNeeded ? "Yes" : "No";
+            RecommendedRamSize = response.RecommendedRamSize.ToString();
+            PageFaultProcess = response.MaximumPageFaultsProcessName;
+            AnalysingSince = response.AnalysisHours;
+        }
+        private void ShowProgressRing(bool needtoshow)
+        {
+            if(needtoshow)
+            {
+                ReportVisibility = "Collapsed";
+                ProgressMsg = "Hold Tight.. !! We are working on generating Report";
+                ProgressRingVisibility = "Visible";
+            }
+            else
+            {
+                ProgressRingVisibility = "Collapsed";
+                ReportVisibility = "Visible";
+            }
+        }
+
+        private Task<object> ShowToastNotification(string title, string stringContent)
         {
             ToastNotifier ToastNotifier = ToastNotificationManager.CreateToastNotifier();
             Windows.Data.Xml.Dom.XmlDocument toastXml = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText02);
@@ -144,9 +207,6 @@ namespace MemoryAdequacyAnalyzer
             Windows.Data.Xml.Dom.IXmlNode toastNode = toastXml.SelectSingleNode("/toast");
             Windows.Data.Xml.Dom.XmlElement audio = toastXml.CreateElement("audio");
             audio.SetAttribute("src", "ms-winsoundevent:Notification.SMS");
-
-            // call the actual algorithm
-            await Task.Delay(3000);
             ToastNotification toast = new ToastNotification(toastXml);
             toast.ExpirationTime = DateTime.Now.AddSeconds(4);
             ToastNotifier.Show(toast);

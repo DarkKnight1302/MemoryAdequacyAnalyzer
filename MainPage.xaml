@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:Charting="using:WinRTXamlToolkit.Controls.DataVisualization.Charting"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     d:DesignWidth="600"
@@ -14,6 +15,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
+            <ColumnDefinition/>
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
@@ -29,10 +31,12 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
+        
         <StackPanel Background="#F05A28" Orientation='Horizontal' Grid.ColumnSpan="3">
             <TextBlock Text="Memory Adequecy Analyzer" FontSize="30" FontWeight="ExtraBold" Foreground="White"  VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="20"/>
             <TextBlock Text="Version 1.0" Foreground="#333333" VerticalAlignment="Bottom"  Margin="0 0 0 25"/>
         </StackPanel>
+        
         <StackPanel Orientation="Horizontal" Grid.Row="1">
             <Button VerticalAlignment="Center" HorizontalAlignment="Center"  Click="StartAnalysing_Handler" Grid.Column="0"  Background="Green" Foreground="White" Margin="10">
                 <StackPanel Orientation="Horizontal">
@@ -55,16 +59,33 @@
                     <TextBlock Text="Generate Report" Margin="5 0 0 0" />
                 </StackPanel>
             </Button>
+            <TextBlock Text="{x:Bind CurrentStatus, Mode=TwoWay}" VerticalAlignment="Center"  FontSize="13" FontFamily="Bold"></TextBlock>
         </StackPanel>
+        
         <Line StrokeThickness="4" Stroke="#434343" X1="0" X2="1" Stretch="Fill" Grid.Row="3" Grid.ColumnSpan="2"/>
-        <TextBlock Text="Ram Upgrade Required :" Foreground="Gray" Grid.Row="4" Grid.Column="0" Margin="5,5,5,5"/>
-        <TextBlock Text="{x:Bind IsRamUpgradeRequired}" Foreground="Gray" Grid.Row="4" Grid.Column="1" Margin="5,5,5,5"/>
-        <TextBlock Text="Analysing Since :" Foreground="Gray" Grid.Row="5" Grid.Column="0" Margin="5,5,5,5"/>
-        <TextBlock Text="{x:Bind AnalysingSince}" Foreground="Gray" Grid.Row="5" Grid.Column="1" Margin="5,5,5,5"/>
-        <TextBlock Text="Peak RAM Usage :" Foreground="Gray" Grid.Row="6" Grid.Column="0" Margin="5,5,5,5"/>
-        <TextBlock Text="{x:Bind RamUsage, Mode=TwoWay}" Foreground="Gray" Grid.Row="6" Grid.Column="1" Margin="5,5,5,5" />
-        <TextBlock Text="Page Fault (process) :" Foreground="Gray" Grid.Row="7" Grid.Column="0" Margin="5,5,5,5"/>
-        <TextBlock Text="{x:Bind PageFaultProcess, Mode=TwoWay}"  Foreground="Gray" Grid.Row="7" Grid.Column="1" Margin="5,5,5,5" />
+        
+        <StackPanel Visibility="{x:Bind ReportVisibility, Mode=TwoWay}" Grid.Row="4" Orientation="Horizontal">
+            <TextBlock  Text="Ram Upgrade Required :" FontWeight="Bold" Foreground="Gray" Grid.Row="4" Grid.Column="0" Margin="5,5,5,5"/>
+            <TextBlock Text="{x:Bind IsRamUpgradeRequired, Mode=TwoWay}" Foreground="Gray" Grid.Row="4" Grid.Column="1" Margin="5,5,5,5"/>
+        </StackPanel>
+        <StackPanel Visibility="{x:Bind ReportVisibility, Mode=TwoWay}" Grid.Row="5" Orientation="Horizontal">
+            <TextBlock Text="Analysing Since (in hrs):" FontWeight="Bold" Foreground="Gray" Grid.Row="5" Grid.Column="0" Margin="5,5,5,5"/>
+            <TextBlock Text="{x:Bind AnalysingSince, Mode=TwoWay}" Foreground="Gray" Grid.Row="5" Grid.Column="1" Margin="5,5,5,5"/>
+        </StackPanel>
+        <StackPanel Visibility="{x:Bind ReportVisibility, Mode=TwoWay}" Grid.Row="6" Orientation="Horizontal">
+            <TextBlock Text="Recommended Additional Ram Size(In Gb) :" FontWeight="Bold" Foreground="Gray" Grid.Row="6" Grid.Column="0" Margin="5,5,5,5"/>
+            <TextBlock Text="{x:Bind RecommendedRamSize, Mode=TwoWay}" Foreground="Gray" Grid.Row="6" Grid.Column="1" Margin="5,5,5,5" />
+        </StackPanel>
+        <StackPanel Visibility="{x:Bind ReportVisibility, Mode=TwoWay}" Grid.Row="7" Orientation="Horizontal">
+            <TextBlock Text="Maximum Page Fault (process) :" FontWeight="Bold" Foreground="Gray" Grid.Row="7" Grid.Column="0" Margin="5,5,5,5"/>
+            <TextBlock Text="{x:Bind PageFaultProcess, Mode=TwoWay}"  Foreground="Gray" Grid.Row="7" Grid.Column="1" Margin="5,5,5,5" />
+        </StackPanel>
+        
+        <StackPanel Visibility="{x:Bind ProgressRingVisibility, Mode=TwoWay}"  Grid.Row="4">
+            <muxc:ProgressRing IsActive="True"/>
+            <TextBlock TextAlignment="Center"  FontSize="13" FontWeight="Bold" Text="{x:Bind ProgressMsg, Mode=TwoWay}" ></TextBlock>
+        </StackPanel>
+        
         <Grid Grid.Row="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -74,10 +95,11 @@
             </Grid.ColumnDefinitions>
             <Charting:Chart  Title="Ram Usage" Grid.ColumnSpan="2" x:Name="LineChart" HorizontalAlignment="Center" Width="800" Height="400" >
                 <Charting:LineSeries CornerRadius="10"  Foreground="Red" IndependentValuePath="CurrentTimeStamp" DependentValuePath="RamUsage" IsSelectionEnabled="True"/>
-             </Charting:Chart>
+            </Charting:Chart>
             <Charting:Chart Title="Page Faults (per min)"  Grid.Column="2" Grid.ColumnSpan="2" x:Name="LineChart1" HorizontalAlignment="Center" Width="800" Height="400" >
                 <Charting:LineSeries CornerRadius="10"  Foreground="Red" IndependentValuePath="CurrentTimeStamp" DependentValuePath="PageFaultsPerMin" IsSelectionEnabled="True"/>
             </Charting:Chart>
         </Grid>
+        
     </Grid>
 </Page>
