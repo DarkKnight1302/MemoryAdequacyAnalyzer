@@ -19,8 +19,10 @@ namespace BackgroundService
     {
         private static Windows.Storage.ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
-       private static Windows.Storage.ApplicationDataContainer container =
+        private static Windows.Storage.ApplicationDataContainer container =
            localSettings.CreateContainer("settings", Windows.Storage.ApplicationDataCreateDisposition.Always);
+
+        private static HashSet<string> unimportantProcess = new HashSet<string>() { "System", "Registry", "MsMpEng.exe" };
 
         public async void Run(IBackgroundTaskInstance taskInstance)
         {
@@ -53,25 +55,28 @@ namespace BackgroundService
             SystemMemoryUsageReport usageReport = systemdiagnosticInfo.MemoryUsage.GetReport();
             double ramUsagePercent = (double)100 - (((double)usageReport.AvailableSizeInBytes / (double)usageReport.TotalPhysicalSizeInBytes) * 100);
             uint totalPageFault = 0;
-            ulong totalPageFileSize = 0;
-            ulong virtualMemorySizeInBytes = 0;
+            ulong pagedMemorySizeInBytes = 0;
             foreach (ProcessDiagnosticInfo process in diagnosticInfos)
             {
-                if (process != null)
+                try
                 {
-                    ProcessMemoryUsageReport report = process.MemoryUsage.GetReport();
-                    if (report != null)
+                    if (process != null)
                     {
-                        totalPageFault += report.PageFaultCount;
-                        totalPageFileSize += report.PageFileSizeInBytes;
-                        virtualMemorySizeInBytes += report.VirtualMemorySizeInBytes;
-                        if (report.PageFaultCount > (uint)(container.Values["maxPageFault"] ?? (uint)0))
+                        ProcessMemoryUsageReport report = process.MemoryUsage.GetReport();
+                        if (!unimportantProcess.Contains(process.ExecutableFileName) && process.ExecutableFileName.EndsWith(".exe"))
                         {
-                            container.Values["maxPageFault"] = (uint)report.PageFaultCount;
-                            container.Values["maxPageFaultProcess"] = process.ExecutableFileName;
+                            totalPageFault += report.PageFaultCount;
+                            if (report.PageFaultCount > (uint)(container.Values["maxPageFault"] ?? (uint)0))
+                            {
+                                container.Values["maxPageFault"] = (uint)report.PageFaultCount;
+                                container.Values["maxPageFaultProcess"] = process.ExecutableFileName;
+                            }
                         }
+                        pagedMemorySizeInBytes += report.PagedPoolSizeInBytes;
                     }
-                    
+                } catch (Exception e)
+                {
+                    Console.WriteLine(e);
                 }
             }
             uint previousPageFault = (uint)(container.Values["previousPageFault"] ?? (uint)0);
@@ -83,17 +88,19 @@ namespace BackgroundService
                 DateTime previousDateTime = DateTime.FromBinary(previousTime);
                 uint pageFaultDiff = totalPageFault > previousPageFault ? (uint)totalPageFault - previousPageFault : 0;
                 uint minsDiff = (uint)DateTime.Now.Subtract(previousDateTime).Minutes;
-                float pageFaultPerMin = (float)pageFaultDiff / (float)minsDiff;
-                DataReaderWriter readerWriter = DataReaderWriter.Instance;
-                DataModel dataModel = new DataModel
+                if (minsDiff > 0)
                 {
-                    CurrentTimeStamp = DateTime.Now,
-                    RamUsage = (int)ramUsagePercent,
-                    PageFaultsPerMin = (int)pageFaultPerMin,
-                    PageFileSize = totalPageFileSize,
-                    VirtualMemorySizeInBytes = virtualMemorySizeInBytes,
-                };
-                await readerWriter.WriteData(dataModel).ConfigureAwait(false);
+                    float pageFaultPerMin = (float)pageFaultDiff / (float)minsDiff;
+                    DataReaderWriter readerWriter = DataReaderWriter.Instance;
+                    DataModel dataModel = new DataModel
+                    {
+                        CurrentTimeStamp = DateTime.Now,
+                        RamUsage = (int)ramUsagePercent,
+                        PageFaultsPerMin = (int)pageFaultPerMin,
+                        PagedMemorySizeInBytes = pagedMemorySizeInBytes,
+                    };
+                    await readerWriter.WriteData(dataModel).ConfigureAwait(false);
+                }
             }
         }
     }

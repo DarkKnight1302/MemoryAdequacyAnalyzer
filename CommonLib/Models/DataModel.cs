@@ -14,8 +14,6 @@ namespace MemoryAdequacyAnalyzer.Models
 
         public int PageFaultsPerMin { get; set; }
 
-        public ulong PageFileSize {  get; set; }
-
-        public ulong VirtualMemorySizeInBytes {  get; set; }
+        public ulong PagedMemorySizeInBytes {  get; set; }
     }
 }
