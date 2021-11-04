@@ -8,16 +8,16 @@
     xmlns:Charting="using:WinRTXamlToolkit.Controls.DataVisualization.Charting"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
     d:DesignWidth="600"
     d:DesignHeight="900">
 
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
+            <ColumnDefinition />
+            <ColumnDefinition />
+            <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -32,28 +32,28 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        
-        <StackPanel Background="#F05A28" Orientation='Horizontal' Grid.ColumnSpan="3">
-            <TextBlock Text="Memory Adequecy Analyzer" FontSize="30" FontWeight="ExtraBold" Foreground="White"  VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="20"/>
-            <TextBlock Text="Version 1.0" Foreground="#333333" VerticalAlignment="Bottom"  Margin="0 0 0 25"/>
+
+        <StackPanel HorizontalAlignment="Center"  Orientation='Horizontal' Grid.ColumnSpan="4">
+            <TextBlock Text="Memory Adequecy Analyzer" FontSize="30" FontWeight="ExtraBold" VerticalAlignment="Bottom" Margin="20"/>
+            <TextBlock TextAlignment="Right" Text="Version 1.0" Foreground="DimGray" VerticalAlignment="Bottom"  Margin="0 0 0 25"/>
         </StackPanel>
-        
-        <StackPanel Orientation="Horizontal" Grid.Row="1">
-            <Button VerticalAlignment="Center" HorizontalAlignment="Center"  Click="StartAnalysing_Handler" Grid.Column="0"  Background="Green" Foreground="White" Margin="10">
+
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="4" HorizontalAlignment="Center">
+            <Button VerticalAlignment="Center" HorizontalAlignment="Center" PointerEntered="button_PointerEntered"  PointerExited="button_PointerExited" Click="StartAnalysing_Handler" Grid.Column="0"  Margin="10">
                 <StackPanel Orientation="Horizontal">
                     <SymbolIcon Symbol="Play">
                     </SymbolIcon>
                     <TextBlock Text="Start Analysing" Margin="5 0 0 0" />
                 </StackPanel>
             </Button>
-            <Button VerticalAlignment="Center" HorizontalAlignment="Center" Click="StopAnalysing_Handler" Grid.Column="1"  Background="Red" Foreground="White" Margin="10">
+            <Button VerticalAlignment="Center" HorizontalAlignment="Center" PointerEntered="button_PointerEntered"  PointerExited="button_PointerExited" Click="StopAnalysing_Handler" Grid.Column="1" Margin="10">
                 <StackPanel Orientation="Horizontal">
                     <SymbolIcon Symbol="Pause">
                     </SymbolIcon>
                     <TextBlock Text="Stop Analysing" Margin="5 0 0 0" />
                 </StackPanel>
             </Button>
-            <Button VerticalAlignment="Center" HorizontalAlignment="Center"  Click="GenerateReport_Handler" Grid.Column="2"  Background="Green" Foreground="White" Margin="10">
+            <Button VerticalAlignment="Center" HorizontalAlignment="Center" PointerEntered="button_PointerEntered"  PointerExited="button_PointerExited" Click="GenerateReport_Handler" Grid.Column="2" Margin="10">
                 <StackPanel Orientation="Horizontal">
                     <SymbolIcon Symbol="Refresh">
                     </SymbolIcon>
@@ -62,32 +62,32 @@
             </Button>
             <TextBlock Text="{x:Bind CurrentStatus, Mode=TwoWay}" VerticalAlignment="Center"  FontSize="13" FontFamily="Bold"></TextBlock>
         </StackPanel>
-        
-        <Line StrokeThickness="4" Stroke="#434343" X1="0" X2="1" Stretch="Fill" Grid.Row="3" Grid.ColumnSpan="2"/>
+
+        <Line StrokeThickness="4"  Stroke="#434343" X1="0" X2="1" Stretch="Fill" Grid.Row="3" Grid.ColumnSpan="4"/>
         
         <StackPanel Visibility="{x:Bind ReportVisibility, Mode=TwoWay}" Grid.Row="4" Orientation="Horizontal">
-            <TextBlock  Text="Ram Upgrade Required :" FontWeight="Bold" Foreground="Gray" Grid.Row="4" Grid.Column="0" Margin="5,5,5,5"/>
+            <TextBlock  Text="Ram Upgrade Required :" FontWeight="Bold" Foreground="Gray" Grid.Row="4" Grid.Column="0" Margin="15,5,5,5"/>
             <TextBlock Text="{x:Bind IsRamUpgradeRequired, Mode=TwoWay}" Foreground="Gray" Grid.Row="4" Grid.Column="1" Margin="5,5,5,5"/>
         </StackPanel>
         <StackPanel Visibility="{x:Bind ReportVisibility, Mode=TwoWay}" Grid.Row="5" Orientation="Horizontal">
-            <TextBlock Text="Analysing Since (in hrs):" FontWeight="Bold" Foreground="Gray" Grid.Row="5" Grid.Column="0" Margin="5,5,5,5"/>
+            <TextBlock Text="Analysing Since (in hrs):" FontWeight="Bold" Foreground="Gray" Grid.Row="5" Grid.Column="0" Margin="15,5,5,5"/>
             <TextBlock Text="{x:Bind AnalysingSince, Mode=TwoWay}" Foreground="Gray" Grid.Row="5" Grid.Column="1" Margin="5,5,5,5"/>
         </StackPanel>
         <StackPanel Visibility="{x:Bind ReportVisibility, Mode=TwoWay}" Grid.Row="6" Orientation="Horizontal">
-            <TextBlock Text="Recommended Additional Ram Size(In Gb) :" FontWeight="Bold" Foreground="Gray" Grid.Row="6" Grid.Column="0" Margin="5,5,5,5"/>
+            <TextBlock Text="Recommended Additional Ram Size(In Gb) :" FontWeight="Bold" Foreground="Gray" Grid.Row="6" Grid.Column="0" Margin="15,5,5,5"/>
             <TextBlock Text="{x:Bind RecommendedRamSize, Mode=TwoWay}" Foreground="Gray" Grid.Row="6" Grid.Column="1" Margin="5,5,5,5" />
         </StackPanel>
         <StackPanel Visibility="{x:Bind ReportVisibility, Mode=TwoWay}" Grid.Row="7" Orientation="Horizontal">
-            <TextBlock Text="Maximum Page Fault (process) :" FontWeight="Bold" Foreground="Gray" Grid.Row="7" Grid.Column="0" Margin="5,5,5,5"/>
+            <TextBlock Text="Maximum Page Fault (process) :" FontWeight="Bold" Foreground="Gray" Grid.Row="7" Grid.Column="0" Margin="15,5,5,5"/>
             <TextBlock Text="{x:Bind PageFaultProcess, Mode=TwoWay}"  Foreground="Gray" Grid.Row="7" Grid.Column="1" Margin="5,5,5,5" />
         </StackPanel>
         
-        <StackPanel Visibility="{x:Bind ProgressRingVisibility, Mode=TwoWay}"  Grid.Row="4">
+        <StackPanel HorizontalAlignment="Center" Grid.ColumnSpan="4" Visibility="{x:Bind ProgressRingVisibility, Mode=TwoWay}"  Grid.Row="4">
             <muxc:ProgressRing IsActive="True"/>
             <TextBlock TextAlignment="Center"  FontSize="13" FontWeight="Bold" Text="{x:Bind ProgressMsg, Mode=TwoWay}" ></TextBlock>
         </StackPanel>
         
-        <Grid Grid.Row="8" Margin="0 20 0 0" Visibility="{x:Bind ChartVisibility, Mode=TwoWay}">
+        <Grid Grid.Row="8" Margin="0 20 0 0" Visibility="{x:Bind ChartVisibility, Mode=TwoWay}" Grid.ColumnSpan="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
@@ -97,11 +97,11 @@
             <Charting:Chart  Title="Ram Usage" Grid.ColumnSpan="2" x:Name="LineChart" HorizontalAlignment="Center" Width="800" Height="400" >
                 <Charting:LineSeries CornerRadius="10"  Foreground="Red" IndependentValuePath="CurrentTimeStamp" DependentValuePath="RamUsage" IsSelectionEnabled="True"/>
             </Charting:Chart>
-            <Charting:Chart Title="PagedMemorySizeInBytes (in Gb)"  Grid.Column="2" Grid.ColumnSpan="2" x:Name="LineChart1" HorizontalAlignment="Center" Width="800" Height="400" >
+            <Charting:Chart Title="PagedMemorySizeInBytes (in bytes)"  Grid.Column="2" Grid.ColumnSpan="2" x:Name="LineChart1" HorizontalAlignment="Center" Width="800" Height="400" >
                 <Charting:LineSeries CornerRadius="10"  Foreground="Red" IndependentValuePath="CurrentTimeStamp" DependentValuePath="PagedMemorySizeInBytes" IsSelectionEnabled="True"/>
             </Charting:Chart>
         </Grid>
-        <StackPanel Orientation="Horizontal" Grid.Row="9" HorizontalAlignment="Center" Margin="0 10 0 0">
+        <StackPanel Orientation="Horizontal" Grid.Row="9" Grid.ColumnSpan="4" HorizontalAlignment="Center" Margin="0 10 0 0">
             <DatePicker x:Name="StartDate" Header="Pick a Start date" Margin="5 0 10 0"/>
             <DatePicker x:Name="EndDate" Header="Pick a End date"   Margin="0 0 10 0"/>
             <Button Content="Submit" Click="ShowDashBoardBetweenDates_Handler" VerticalAlignment="Center" Margin="0 18 0 0"></Button>

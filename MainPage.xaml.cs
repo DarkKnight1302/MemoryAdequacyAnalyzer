@@ -16,6 +16,7 @@ using CommonLib.Models;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Windows.UI.Popups;
+using Windows.UI.Xaml.Input;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -75,8 +76,9 @@ namespace MemoryAdequacyAnalyzer
                 if (dataList != null)
                 {
                     (LineChart.Series[0] as LineSeries).ItemsSource = dataList;
-                    List<DataModel> tempList = ConvertToGb(dataList);
-                    (LineChart1.Series[0] as LineSeries).ItemsSource = tempList;
+                    // Todo: Uncomment it if we want to be in Gb.
+                    // List<DataModel> tempList = ConvertToGb(dataList);
+                    (LineChart1.Series[0] as LineSeries).ItemsSource = dataList;
                     ChartVisibility = "Visible";
                 } 
                 else
@@ -128,6 +130,26 @@ namespace MemoryAdequacyAnalyzer
             List<DataModel> dataList = tempList;
             LoadChartContent(dataList);
             return Task.FromResult<object>(null);
+        }
+
+        /// <summary>
+        /// Mouse Pointer styling when enter the button section.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button_PointerEntered(object sender, PointerRoutedEventArgs e)
+        {
+            Windows.UI.Xaml.Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Hand, 1);
+        }
+
+        /// <summary>
+        /// Mouse pointer styling when exit the button section.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button_PointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            Windows.UI.Xaml.Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 1);
         }
 
         /// <summary>
@@ -263,6 +285,7 @@ namespace MemoryAdequacyAnalyzer
             if (tempList.Count == 0)
             {
                 var msg = new MessageDialog("No any data between selected date. Hence defaulting to till latest date");
+                _ = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => ShowDashboard().ConfigureAwait(false));
                 await msg.ShowAsync();
                 return;
             }
