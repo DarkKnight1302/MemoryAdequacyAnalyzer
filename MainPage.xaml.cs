@@ -17,6 +17,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Windows.UI.Popups;
 using Windows.UI.Xaml.Input;
+using Hangfire.Annotations;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -33,7 +34,21 @@ namespace MemoryAdequacyAnalyzer
             var handler = PropertyChanged;
             if (handler != null)
             {
-                handler(this, new PropertyChangedEventArgs(propertyName));
+                if (Dispatcher == null) // For console App
+                {
+                    PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                }
+                else
+                {
+                    if (Dispatcher.HasThreadAccess)
+                    {
+                        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                    }
+                    else
+                    {
+                        _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => PropertyChanged(this, new PropertyChangedEventArgs(propertyName)));
+                    }
+                }
             }
         }
 
@@ -61,7 +76,7 @@ namespace MemoryAdequacyAnalyzer
         public MainPage()
         {
             this.InitializeComponent();
-            _ = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => ShowDashboard().ConfigureAwait(false));
+            _ = ShowDashboard().ConfigureAwait(false);
             CheckBackgroundTaskStarted();
         }
 
@@ -204,15 +219,15 @@ namespace MemoryAdequacyAnalyzer
             {
                 try
                 {
-                    await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, ()=>ShowProgressRing(true));
+                    ShowProgressRing(true);
                     AnalysisResponse response = await AnalyzerService.GetInstance().AnalyzeData();
                     if ( response != null )
                     {
-                        await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => PopulatePerformanceReport(response));
+                        PopulatePerformanceReport(response);
                     }
                     await Task.Delay(5000);
                     await ShowToastNotification("Report Generated", "Voila!! Your report is ready to be viewed :-)");
-                    await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => ShowProgressRing(false));
+                    ShowProgressRing(false);
                 } 
                 catch (Exception ex)
                 {
@@ -285,7 +300,7 @@ namespace MemoryAdequacyAnalyzer
             if (tempList.Count == 0)
             {
                 var msg = new MessageDialog("No any data between selected date. Hence defaulting to till latest date");
-                _ = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => ShowDashboard().ConfigureAwait(false));
+                _ = await ShowDashboard();
                 await msg.ShowAsync();
                 return;
             }
